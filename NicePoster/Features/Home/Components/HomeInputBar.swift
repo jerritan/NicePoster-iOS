@@ -1,0 +1,143 @@
+import SwiftUI
+
+struct HomeInputBar: View {
+    @Binding var text: String
+    let onSend: () -> Void
+    let onCameraTap: () -> Void
+    let onStyleTap: () -> Void
+    var onAdvancedTap: (() -> Void)? = nil
+    
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Input Row - matches design: icons + text field + send button
+            HStack(spacing: 12) {
+                // Left icons (Product, Style, Advanced)
+                HStack(spacing: 4) {
+                    BarIconButton(icon: "shippingbox.fill") {
+                        onCameraTap()
+                    }
+                    BarIconButton(icon: "paintbrush.fill") {
+                        onStyleTap()
+                    }
+                    BarIconButton(icon: "slider.horizontal.3") {
+                        onAdvancedTap?()
+                    }
+                }
+                
+                // Input Field
+                ZStack(alignment: .leading) {
+                    if text.isEmpty {
+                        Text("Ask anything...")
+                            .foregroundColor(NPColors.textTertiary)
+                            .padding(.horizontal, 16)
+                    }
+                    
+                    TextField("", text: $text)
+                        .textFieldStyle(.plain)
+                        .focused($isFocused)
+                        .submitLabel(.send)
+                        .onSubmit {
+                            if !text.isEmpty { onSend() }
+                        }
+                        .padding(.horizontal, 16)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(NPColors.bgTertiary)
+                .cornerRadius(NPRadius.full)
+                .onTapGesture {
+                    isFocused = true
+                }
+                
+                // Send Button
+                Button(action: {
+                    HapticManager.shared.mediumTap()
+                    onSend()
+                }) {
+                    Circle()
+                        .fill(text.isEmpty ? Color.gray.opacity(0.3) : NPColors.brandPrimary)
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                }
+                .disabled(text.isEmpty)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                Rectangle()
+                    .fill(NPColors.bgPrimary)
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4)
+                    .ignoresSafeArea()
+            )
+        }
+    }
+}
+
+// MARK: - Bar Icon Button
+struct BarIconButton: View {
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.lightTap()
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(NPColors.textSecondary)
+                .frame(width: 44, height: 44)
+        }
+    }
+}
+
+// MARK: - Attachment Button
+struct AttachmentButton: View {
+    let icon: String
+    let label: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.lightTap()
+            action()
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                Text(label)
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundColor(color)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(color.opacity(0.1))
+            .cornerRadius(NPRadius.full)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+struct IconButton: View {
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.lightTap()
+            action()
+        }) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(NPColors.textSecondary)
+                .frame(width: 40, height: 40)
+        }
+    }
+}
