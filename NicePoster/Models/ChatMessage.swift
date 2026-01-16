@@ -14,15 +14,25 @@ struct ChatMessage: Identifiable, Equatable {
         case advancedOptions
         case thinking
         case imageResult([GeneratedImage])
+        
+        static func == (lhs: MessageType, rhs: MessageType) -> Bool {
+            switch (lhs, rhs) {
+            case (.text, .text), (.advancedOptions, .advancedOptions), (.thinking, .thinking):
+                return true
+            case let (.productSelection(l), .productSelection(r)):
+                return l.map(\.id) == r.map(\.id)
+            case let (.styleSelection(l), .styleSelection(r)):
+                return l.map(\.id) == r.map(\.id)
+            case let (.imageResult(l), .imageResult(r)):
+                return l.map(\.id) == r.map(\.id)
+            default:
+                return false
+            }
+        }
     }
 }
 
-struct Product: Identifiable, Equatable {
-    let id = UUID()
-    let name: String
-    let price: String
-    let imageName: String
-}
+// Note: Product is defined in Models/Product.swift
 
 struct StyleOption: Identifiable, Equatable {
     let id = UUID()

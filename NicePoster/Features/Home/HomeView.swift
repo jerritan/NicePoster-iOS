@@ -4,9 +4,10 @@ struct HomeView: View {
     @State private var messages: [ChatMessage] = []
     @State private var inputText: String = ""
     @State private var showSuggestions = true
-    @State private var showEditor = false
     @State private var selectedImageForEditing: GeneratedImage?
     @State private var conversationState: ConversationState = .idle
+    
+    // Product Selection State (now handled internally by HomeInputBar)
     
     // Cart State
     @State private var cartItems: [GeneratedImage] = []
@@ -173,7 +174,7 @@ struct HomeView: View {
             HomeInputBar(
                 text: $inputText,
                 onSend: { sendMessage(content: inputText) },
-                onCameraTap: { showEditor = true },
+                onCameraTap: {},
                 onStyleTap: {}
             )
         }
@@ -182,12 +183,6 @@ struct HomeView: View {
             CartFlowView(items: $cartItems)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-        }
-        .fullScreenCover(item: $selectedImageForEditing) { image in
-            ConversationalEditorView(imageName: image.imageName)
-        }
-        .fullScreenCover(isPresented: $showEditor) {
-            ConversationalEditorView(imageName: nil)
         }
         .fullScreenCover(isPresented: $showGenerationResults) {
             GenerationResultsView(

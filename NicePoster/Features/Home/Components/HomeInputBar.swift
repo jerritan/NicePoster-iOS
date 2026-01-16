@@ -8,28 +8,37 @@ struct HomeInputBar: View {
     var onAdvancedTap: (() -> Void)? = nil
     
     @FocusState private var isFocused: Bool
+    @State private var showProductDrawer = false
+    @State private var selectedProducts: Set<UUID> = []
     
     var body: some View {
         VStack(spacing: 0) {
+            // Selected Products Badge
+            if !selectedProducts.isEmpty {
+                SelectedProductsBadge(count: selectedProducts.count)
+                    .padding(.bottom, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            
             // Input Row - matches design: icons + text field + send button
             HStack(spacing: 12) {
-                // Left icons (Product, Style, Advanced)
+                // Left icons (Product, Style)
                 HStack(spacing: 4) {
-                    BarIconButton(icon: "shippingbox.fill") {
-                        onCameraTap()
-                    }
-                    BarIconButton(icon: "paintbrush.fill") {
-                        onStyleTap()
+                    BarIconButton(
+                        icon: "doc.text.fill",
+                        isHighlighted: !selectedProducts.isEmpty
+                    ) {
+                        showProductDrawer = true
                     }
                     BarIconButton(icon: "slider.horizontal.3") {
-                        onAdvancedTap?()
+                        onStyleTap()
                     }
                 }
                 
                 // Input Field
                 ZStack(alignment: .leading) {
                     if text.isEmpty {
-                        Text("Ask anything...")
+                        Text(selectedProducts.isEmpty ? "Ask anything..." : "Ask about selections...")
                             .foregroundColor(NPColors.textTertiary)
                             .padding(.horizontal, 16)
                     }
@@ -76,12 +85,21 @@ struct HomeInputBar: View {
                     .ignoresSafeArea()
             )
         }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedProducts.count)
+        .overlay(
+            ProductSelectionDrawer(
+                isPresented: $showProductDrawer,
+                selectedProducts: $selectedProducts,
+                products: MockProducts.items
+            )
+        )
     }
 }
 
 // MARK: - Bar Icon Button
 struct BarIconButton: View {
     let icon: String
+    var isHighlighted: Bool = false
     let action: () -> Void
     
     var body: some View {
@@ -91,8 +109,13 @@ struct BarIconButton: View {
         }) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(NPColors.textSecondary)
+                .foregroundColor(isHighlighted ? NPColors.brandPrimary : NPColors.textSecondary)
                 .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(isHighlighted ? NPColors.brandPrimary.opacity(0.1) : Color.clear)
+                        .frame(width: 36, height: 36)
+                )
         }
     }
 }

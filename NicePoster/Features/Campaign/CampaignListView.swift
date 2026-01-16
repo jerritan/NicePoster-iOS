@@ -7,6 +7,7 @@ struct CampaignListView: View {
     @State private var searchText: String = ""
     @State private var selectedCampaign: Campaign?
     @State private var showQuickPeek = false
+    @State private var showCampaignDetails = false
     
     var body: some View {
         ZStack {
@@ -45,11 +46,18 @@ struct CampaignListView: View {
                         showQuickPeek = false
                     },
                     onViewDetails: {
-                        HapticManager.shared.success()
                         showQuickPeek = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showCampaignDetails = true
+                        }
                     }
                 )
                 .transition(.opacity)
+            }
+        }
+        .fullScreenCover(isPresented: $showCampaignDetails) {
+            if let campaign = selectedCampaign {
+                CampaignDetailsView(campaign: campaign)
             }
         }
     }

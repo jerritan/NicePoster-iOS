@@ -54,6 +54,7 @@ struct AppMainTabView: View {
 // MARK: - Cart Tab View (Light Theme)
 struct CartTabView: View {
     @State private var cartItems: [GeneratedImage] = GeneratedImage.mockCartItems
+    @State private var showBubbleCart = false
     @State private var showOutputSelection = false
     
     var body: some View {
@@ -113,12 +114,12 @@ struct CartTabView: View {
                     VStack(spacing: 0) {
                         Button(action: {
                             HapticManager.shared.mediumTap()
-                            showOutputSelection = true
+                            showBubbleCart = true
                         }) {
                             HStack {
                                 Image(systemName: "square.and.arrow.up")
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("导出所有图片")
+                                Text("选择并导出")
                                     .font(.system(size: 16, weight: .semibold))
                             }
                             .foregroundColor(.white)
@@ -138,6 +139,15 @@ struct CartTabView: View {
                     )
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showBubbleCart) {
+            BubbleCartView(
+                cartItems: $cartItems,
+                onExport: {
+                    showBubbleCart = false
+                    showOutputSelection = true
+                }
+            )
         }
         .fullScreenCover(isPresented: $showOutputSelection) {
             OutputSelectionView(
@@ -169,6 +179,8 @@ struct CartItemThumbnail: View {
 
 // MARK: - Profile View (Light Theme)
 struct ProfileView: View {
+    @State private var showBrandDNA = false
+    
     var body: some View {
         ZStack {
             NPColors.bgPrimary.ignoresSafeArea()
@@ -209,6 +221,15 @@ struct ProfileView: View {
                     }
                     .padding(.vertical, 32)
                     
+                    // Brand Assets Section
+                    ProfileSection(title: "品牌资产") {
+                        ProfileMenuItem(icon: "paintpalette", title: "Brand DNA") {
+                            showBrandDNA = true
+                        }
+                        ProfileMenuItem(icon: "photo.stack", title: "素材库")
+                        ProfileMenuItem(icon: "doc.text", title: "模板收藏")
+                    }
+                    
                     // Settings Section
                     ProfileSection(title: "设置") {
                         ProfileMenuItem(icon: "person.circle", title: "账号设置")
@@ -236,6 +257,23 @@ struct ProfileView: View {
                     .padding(.bottom, 32)
                 }
                 .padding(.horizontal, 20)
+            }
+        }
+        .fullScreenCover(isPresented: $showBrandDNA) {
+            NavigationView {
+                BrandDNAView()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button(action: {
+                                showBrandDNA = false
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(NPColors.textSecondary)
+                            }
+                        }
+                    }
             }
         }
     }
@@ -266,10 +304,12 @@ struct ProfileSection<Content: View>: View {
 struct ProfileMenuItem: View {
     let icon: String
     let title: String
+    var action: (() -> Void)? = nil
     
     var body: some View {
         Button(action: {
             HapticManager.shared.lightTap()
+            action?()
         }) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
